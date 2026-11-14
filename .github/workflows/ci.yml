@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate extension & run simulation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dev dependencies
+        run: npm ci
+
+      - name: Check compiler + build artifacts are up to date
+        run: |
+          npm run build
+          git diff --exit-code --stat -- extension/ \
+            || (echo '::error::Generated artifacts are out of date — run `npm run build` and commit' && exit 1)
+
+      - name: Validate extension (manifest, DNR schema, RE2, CSP)
+        run: npm run validate
+
+      - name: Service-worker simulation
+        run: npm run simulate
+
+      - name: Pack extension (smoke)
+        run: |
+          sudo apt-get update >/dev/null 2>&1 || true
+          which zip >/dev/null || sudo apt-get install -y zip
+          npm run pack

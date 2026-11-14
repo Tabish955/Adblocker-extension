@@ -1,0 +1,20 @@
+{
+  "builtAt": "2026-11-14",
+  "lists": {
+    "easylist": {
+      "dnrRules": 49147,
+      "cosmeticSelectors": 23380,
+      "exceptions": 331
+    },
+    "easyprivacy": {
+      "dnrRules": 53545,
+      "cosmeticSelectors": 2,
+      "exceptions": 0
+    },
+    "fanboy_annoyance": {
+      "dnrRules": 2459,
+      "cosmeticSelectors": 44852,
+      "exceptions": 422
+    }
+  }
+}

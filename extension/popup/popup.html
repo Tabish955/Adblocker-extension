@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aegis Ad Blocker</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="topbar">
+    <img class="logo" src="../icons/icon48.png" alt="Aegis logo" width="30" height="30" />
+    <div class="title-wrap">
+      <h1 class="title">Aegis Ad Blocker</h1>
+      <span class="version" id="version">v1.0.0</span>
+    </div>
+    <label class="switch switch-lg" title="Turn Aegis on or off">
+      <input type="checkbox" id="masterToggle" aria-label="Enable Aegis Ad Blocker" />
+      <span class="track"><span class="thumb"></span></span>
+    </label>
+  </header>
+
+  <main>
+    <section class="status-card" id="statusCard" data-state="on">
+      <div class="status-icon" id="statusIcon" aria-hidden="true"></div>
+      <div class="status-text">
+        <p class="status-title" id="statusTitle">Protection active</p>
+        <p class="status-sub" id="statusSub">Blocking ads and trackers on every site.</p>
+      </div>
+    </section>
+
+    <section class="card site-card">
+      <div class="site-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3a15.3 15.3 0 0 1 4 9 15.3 15.3 0 0 1-4 9 15.3 15.3 0 0 1-4-9 15.3 15.3 0 0 1 4-9Z"/></svg>
+      </div>
+      <div class="site-meta">
+        <p class="site-host" id="siteHost">this page</p>
+        <p class="site-hint" id="siteHint">Protection is enabled here</p>
+      </div>
+      <label class="switch" title="Pause protection on this site">
+        <input type="checkbox" id="siteToggle" aria-label="Pause Aegis on this site" />
+        <span class="track"><span class="thumb"></span></span>
+      </label>
+    </section>
+
+    <section class="card stats-card">
+      <div class="stat">
+        <p class="stat-value" id="blockedCount">—</p>
+        <p class="stat-label">Matched on this page</p>
+      </div>
+      <div class="stat-divider" aria-hidden="true"></div>
+      <div class="stat">
+        <p class="stat-value" id="ruleCount">—</p>
+        <p class="stat-label">Filter rules loaded</p>
+      </div>
+      <div class="stat-divider" aria-hidden="true"></div>
+      <div class="stat">
+        <p class="stat-value" id="listsActive">—</p>
+        <p class="stat-label">Lists active</p>
+      </div>
+    </section>
+
+    <section class="card lists-card" id="listsCard">
+      <p class="lists-title">Active filters</p>
+      <ul class="lists-list" id="listsList"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <button class="footer-btn" id="openOptions" type="button">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      Options
+    </button>
+    <span class="footer-dot" aria-hidden="true">·</span>
+    <span class="footer-note">Open source · MV3</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
