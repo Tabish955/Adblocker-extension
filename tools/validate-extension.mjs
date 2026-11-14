@@ -10,6 +10,7 @@
  *   2. DNR rulesets — id/priority uniqueness & ranges, action types, condition
  *      keys, urlFilter grammar, RE2-compilable regexFilter (via re2js), domain
  *      validation, resourceTypes enum, allowAllRequests preconditions
+ *   2b. cosmetic indexes — root-hiding selectors rejected (html/body/*)
  *   3. Extension pages — no inline scripts/styles/handlers (MV3 CSP)
  *   4. Scriptlets bundle — parses as JS, contains engine markers
  *
@@ -114,6 +115,19 @@ for (const res of manifest.declarative_net_request.rule_resources || []) {
       regexCount++;
       try { RE2JS.compile(c.regexFilter); }
       catch (e) { fail(`${where}: regexFilter not RE2-compatible: ${e.message}`); }
+      // Chrome's DNR enforces a 2KB compiled-program memory limit per regex
+      // rule and silently *skips* violators with a console warning. Reject
+      // any rule whose counted repetitions could exceed it.
+      let worst = 0, total = 0;
+      const rep = /\{(\d+)(?:,(\d*))?\}/g;
+      let m;
+      while ((m = rep.exec(c.regexFilter)) !== null) {
+        const lo = parseInt(m[1], 10);
+        const cost = m[2] === undefined || m[2] === '' ? lo : parseInt(m[2], 10);
+        total += cost;
+        if (cost > worst) worst = cost;
+      }
+      if (worst >= 15 || total >= 60) fail(`${where}: regexFilter counted repetitions may exceed Chrome's 2KB program limit (worst=${worst}, total=${total})`);
     }
     if (c.domainType && !VALID_DOMAIN_TYPES.has(c.domainType)) fail(`${where}: bad domainType`);
     for (const key of ['domains', 'excludedDomains', 'initiatorDomains', 'requestDomains', 'excludedRequestDomains']) {
@@ -143,6 +157,30 @@ for (const res of manifest.declarative_net_request.rule_resources || []) {
 }
 if (totalRegex > 1000) fail(`total regex rules ${totalRegex} exceeds Chrome's 1000-rule regex budget`);
 console.log(`  Total static rules: ${totalRules.toLocaleString()} (guaranteed budget: 30,000 — overflow is managed at runtime via getAvailableStaticRuleCount())`);
+
+/* ----------------------------- 2b. cosmetic indexes — root-selector guard */
+console.log('\n[2b] cosmetic indexes — no root-hiding selectors');
+const ROOT_SEL = new Set(['html', 'body', '*']);
+const isRootSelector = (sel) => sel.split(',').some((p) => ROOT_SEL.has(p.trim().toLowerCase()));
+const resDir = path.join(EXT, 'resources');
+if (existsSync(resDir)) {
+  for (const file of readdirSync(resDir)) {
+    if (!file.endsWith('.cosmetic.json')) continue;
+    const data = readJson(path.join(resDir, file));
+    if (!data) continue;
+    let rootHits = 0;
+    const buckets = [];
+    for (const sel of data.generic || []) buckets.push(['generic', sel]);
+    for (const [dom, sels] of Object.entries(data.perDomain || {})) for (const sel of sels) buckets.push([`perDomain:${dom}`, sel]);
+    for (const sel of data.genericExcluded || []) buckets.push(['genericExcluded', sel]);
+    for (const [dom, sels] of Object.entries(data.perDomainExcluded || {})) for (const sel of sels) buckets.push([`perDomainExcluded:${dom}`, sel]);
+    for (const [bucket, sel] of buckets) {
+      if (isRootSelector(sel)) { rootHits++; fail(`${file} ${bucket}: root-hiding selector ${JSON.stringify(sel)}`); }
+    }
+    console.log(`  • ${file}: ${(data.generic || []).length.toLocaleString()} generic + ${Object.keys(data.perDomain || {}).length.toLocaleString()} hosts (root hits: ${rootHits})`);
+    ok(`${file}`);
+  }
+}
 
 /* --------------------------------------------- 3. MV3 page CSP hygiene */
 console.log('\n[3/4] extension pages — no inline code');

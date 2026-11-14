@@ -59,6 +59,7 @@ const MAX_URLFILTER_LENGTH = 512;
 const MAX_SELECTOR_LENGTH = 2048;
 
 function splitTopLevel(input, sep) {
+  const seps = Array.isArray(sep) ? sep : [sep];
   const parts = [];
   let cur = '';
   let depth = 0;
@@ -74,7 +75,7 @@ function splitTopLevel(input, sep) {
     if (ch === "'" || ch === '"') { quote = ch; cur += ch; continue; }
     if (ch === '(') depth++;
     else if (ch === ')') depth--;
-    if (ch === sep && depth === 0) { parts.push(cur); cur = ''; continue; }
+    if (seps.includes(ch) && depth === 0) { parts.push(cur); cur = ''; continue; }
     cur += ch;
   }
   if (cur.length) parts.push(cur);
@@ -103,7 +104,11 @@ function isAscii(s) {
 function parseDomainList(value) {
   const include = [];
   const exclude = [];
-  for (const raw of splitTopLevel(value || '', '|')) {
+  // Cosmetic/scriptlet domain lists are COMMA-separated ("a.com,b.com##.ad");
+  // network $domains use PIPE. A domain label can contain neither, so split
+  // on both — otherwise the whole comma blob becomes one invalid domain and
+  // the rule silently degrades into a generic one (this hid <html> everywhere).
+  for (const raw of splitTopLevel(value || '', ['|', ','])) {
     let d = raw.trim().toLowerCase();
     if (!d) continue;
     let excluded = false;
@@ -256,6 +261,41 @@ const PROCEDURAL_MARKERS = [
   ':watch-attr(', ':min-text-length(', ':others(', ':has(', ':not(', ':is(', ':where(',
   ':matches-path(', ':matches-href(', ':matches-host(', ':matches-selector(',
 ];
+
+// A cosmetic rule that could hide the root element is never acceptable:
+// it whites out the entire page. (EasyList contains "aads.com,...##HTML";
+// with the comma-separator bug it used to become a generic rule.)
+const ROOT_SELECTORS = new Set(['html', 'body', '*']);
+export function isRootSelector(sel) {
+  if (!sel) return false;
+  return sel.split(',').some((part) => ROOT_SELECTORS.has(part.trim().toLowerCase()));
+}
+
+// Counted-repetition cost model for Chrome's 2KB RE2 program memory limit.
+// Chrome expands x{n} or x{n,} into n copies; we estimate each counted rep
+// with its upper bound (lower bound when unbounded) and reject rules whose
+// worst single rep or total expansion is implausibly large. This mirrors
+// the runtime warnings DNR emits for oversized regexFilter rules.
+export function regexRepCost(re) {
+  let worst = 0, total = 0;
+  const rep = /\{(\d+)(?:,(\d*))?\}/g;
+  let m;
+  while ((m = rep.exec(re)) !== null) {
+    const lo = parseInt(m[1], 10);
+    let cost;
+    if (m[2] === undefined) cost = lo;          // {n}
+    else if (m[2] === '') cost = lo;            // {n,} — n copies then a star
+    else cost = parseInt(m[2], 10);             // {n,m} — m copies worst case
+    total += cost;
+    if (cost > worst) worst = cost;
+  }
+  return { worst, total };
+}
+
+export function regexFitsChromeBudget(re) {
+  const { worst, total } = regexRepCost(re);
+  return worst < 15 && total < 60;
+}
 
 function isPlausibleSelector(sel) {
   if (!sel || sel.length > MAX_SELECTOR_LENGTH) return false;
@@ -473,6 +513,7 @@ export function compileFilters(text, { startId = 1, maxRules = 100000, regexBudg
     cosmeticExceptions: 0,
     cosmeticSkippedProcedural: 0,
     cosmeticSkippedInvalid: 0,
+    cosmeticRootBlocked: 0,
     scriptlets: 0,
     scriptletUnmatch: 0,
     proceduralHasText: 0,
@@ -568,6 +609,7 @@ export function compileFilters(text, { startId = 1, maxRules = 100000, regexBudg
       if (!m) { stats.regexSkipped++; continue; }
       const re = m[1];
       if (!isRE2Compatible(re)) { stats.regexSkipped++; continue; }
+      if (!regexFitsChromeBudget(re)) { skip('regex-program-too-large'); stats.regexSkipped++; continue; }
       const synth = {
         raw: parsed.raw, exception: parsed.exception, type: 'network',
         pattern: undefined, optionsRaw: reOpts,
@@ -639,6 +681,7 @@ export function buildCosmeticIndex(compiled) {
     map.get(key).add(value);
   };
   for (const h of compiled.cosmeticHides) {
+    if (isRootSelector(h.selector)) { compiled.stats.cosmeticRootBlocked = (compiled.stats.cosmeticRootBlocked || 0) + 1; continue; }
     if (h.include.length > 0) {
       for (const d of h.include) addTo(perDomain, d, h.selector);
       for (const d of h.exclude) addTo(perDomainExcluded, d, h.selector);
@@ -709,6 +752,8 @@ export function resolveCosmeticSelectorsSplit(index, hostname) {
     for (const s of index.perDomain[d] || []) specific.add(s);
     for (const s of index.perDomainExcluded[d] || []) excluded.add(s);
   }
+  for (const s of [...generic]) if (isRootSelector(s)) generic.delete(s);
+  for (const s of [...specific]) if (isRootSelector(s)) specific.delete(s);
   if (disableGeneric) generic.clear();
   for (const s of excluded) { generic.delete(s); specific.delete(s); }
   // A selector excluded anywhere must not survive in either bucket.

@@ -2,12 +2,12 @@
   "builtAt": "2026-11-14",
   "lists": {
     "easylist": {
-      "dnrRules": 49147,
+      "dnrRules": 49134,
       "cosmeticSelectors": 23380,
       "exceptions": 331
     },
     "easyprivacy": {
-      "dnrRules": 53545,
+      "dnrRules": 53540,
       "cosmeticSelectors": 2,
       "exceptions": 0
     },

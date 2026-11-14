@@ -10,6 +10,25 @@ no accounts, no cloud, no browsing history.**
 
 ---
 
+## v1.0.2 — blank-page & Chrome regex hardening
+
+- **Root-cause fix for the blank white page.** Cosmetic domain lists
+  ("a.com,b.com##selector") are comma-separated in upstream syntax, but the
+  compiler split them on `|` only — so every multi-domain hide rule was one
+  invalid domain and collapsed into the *generic* bucket. Among them:
+  `aads.com,...##HTML`, which hid the root `<html>` element on every site.
+  Domain lists are now split on both separators, root-hiding selectors
+  (`html`, `body`, `*`) are rejected at build time and at runtime, and the
+  validator fails the build if one ever ships again.
+- **Chrome 2KB regex-program limit.** DNR silently skips regex rules whose
+  compiled RE2 program exceeds 2KB (you saw the console warnings for
+  easylist 44342–44347 / easyprivacy 10892). The compiler now drops any
+  regex whose counted repetitions could exceed the budget, and the validator
+  rejects violators. Builds are warning-free.
+- Rebuilt artifacts: 105,133 DNR rules, cosmetic counts corrected
+  (easylist 13,778 generic + 15,574 host-specific; fanboy 27,271 generic +
+  40,714 host-specific — the inflated "generic" bucket was the bug's twin).
+
 ## v1.0.1 — performance & overblocking fixes
 
 - **Two-phase cosmetic injection.** Site-specific selectors apply at

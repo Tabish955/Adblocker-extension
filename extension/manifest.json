@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Aegis Ad Blocker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Fast, open-source blocker for ads, trackers and cookie annoyances. Powered by EasyList, EasyPrivacy and Fanboy's Annoyances. No accounts, no tracking, no cloud.",
   "minimum_chrome_version": "111",
   "icons": {
@@ -32,21 +32,45 @@
   ],
   "declarative_net_request": {
     "rule_resources": [
-      { "id": "easylist", "enabled": true, "path": "rulesets/easylist.json" },
-      { "id": "easyprivacy", "enabled": true, "path": "rulesets/easyprivacy.json" },
-      { "id": "fanboy_annoyance", "enabled": false, "path": "rulesets/fanboy_annoyance.json" }
+      {
+        "id": "easylist",
+        "enabled": true,
+        "path": "rulesets/easylist.json"
+      },
+      {
+        "id": "easyprivacy",
+        "enabled": true,
+        "path": "rulesets/easyprivacy.json"
+      },
+      {
+        "id": "fanboy_annoyance",
+        "enabled": false,
+        "path": "rulesets/fanboy_annoyance.json"
+      }
     ]
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "file://*/*"],
-      "js": ["content/content-script.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file://*/*"
+      ],
+      "js": [
+        "content/content-script.js"
+      ],
       "run_at": "document_start",
       "all_frames": false
     },
     {
-      "matches": ["http://*/*", "https://*/*", "file://*/*"],
-      "js": ["content/scriptlets-main.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file://*/*"
+      ],
+      "js": [
+        "content/scriptlets-main.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN",
       "all_frames": false
