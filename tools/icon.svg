@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d8c3"/>
+      <stop offset="0.5" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <linearGradient id="shieldEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#071018"/>
+      <stop offset="1" stop-color="#0c1a2b"/>
+    </linearGradient>
+    <linearGradient id="innerSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="0.35" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#032e24"/>
+      <stop offset="1" stop-color="#021f18"/>
+    </linearGradient>
+  </defs>
+  <!-- outer dark plate with rounded look -->
+  <path fill="url(#shieldEdge)" d="M64 4 L114 25.5 V62.5 C114 93.5 97.5 113.8 64 124 C30.5 113.8 14 93.5 14 62.5 V25.5 Z"/>
+  <!-- main shield body -->
+  <path fill="url(#shieldGrad)" d="M64 12.5 L106 31.5 V62.5 C106 89.6 91.8 108.2 64 117.5 C36.2 108.2 22 89.6 22 62.5 V31.5 Z"/>
+  <!-- subtle top sheen -->
+  <path fill="url(#innerSheen)" d="M64 12.5 L106 31.5 V62.5 C106 89.6 91.8 108.2 64 117.5 C36.2 108.2 22 89.6 22 62.5 V31.5 Z"/>
+  <!-- check glyph -->
+  <path fill="none" stroke="url(#checkGrad)" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round" d="M42 65.5 L57.5 81 L89 45.5"/>
+</svg>

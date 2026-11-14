@@ -1,0 +1,18 @@
+{
+  "name": "aegis-ad-blocker",
+  "version": "1.0.0",
+  "description": "Aegis Ad Blocker \u2014 a fast, privacy-respecting MV3 ad & tracker blocker (EasyList/EasyPrivacy/Fanboy).",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build-rulesets.mjs",
+    "validate": "node tools/validate-extension.mjs",
+    "simulate": "node tools/simulate-sw.mjs",
+    "test": "node tools/validate-extension.mjs && node tools/simulate-sw.mjs",
+    "pack": "node tools/pack.mjs",
+    "render-icons": "python3 tools/render-icons.py"
+  },
+  "devDependencies": {
+    "re2js": "^0.4.1"
+  }
+}

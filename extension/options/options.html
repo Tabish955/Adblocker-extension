@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aegis Ad Blocker — Options</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <img src="../icons/icon128.png" alt="Aegis logo" class="hero-logo" width="84" height="84" />
+      <div>
+        <h1>Aegis Ad Blocker</h1>
+        <p class="hero-sub">Ads, trackers and cookie annoyances — blocked locally in your browser.<br />No accounts. No cloud. No browsing history ever leaves your machine.</p>
+        <div class="hero-badges">
+          <span class="badge" id="versionBadge">v1.0.0</span>
+          <span class="badge badge-dim">Manifest V3 · declarativeNetRequest</span>
+          <span class="badge badge-dim">Open source (MIT)</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="card" aria-labelledby="protectionTitle">
+      <div class="card-head">
+        <h2 id="protectionTitle">Protection</h2>
+        <label class="switch">
+          <input type="checkbox" id="masterToggle" aria-label="Enable Aegis" />
+          <span class="track"><span class="thumb"></span></span>
+        </label>
+      </div>
+      <p class="card-sub">Master switch. Turning Aegis off disables every list and all cosmetic filtering.</p>
+      <div class="toggle-rows">
+        <label class="toggle-row">
+          <span class="toggle-meta">
+            <span class="toggle-name">Cosmetic filtering</span>
+            <span class="toggle-desc">Hide ad &amp; tracker placeholder elements with CSS (element hiding).</span>
+          </span>
+          <span class="switch"><input type="checkbox" id="cosmeticToggle" aria-label="Toggle cosmetic filtering" /><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="toggle-row">
+          <span class="toggle-meta">
+            <span class="toggle-name">Text-match hiding <span class="pill">:has-text()</span></span>
+            <span class="toggle-desc">Procedural hiding for elements whose text matches (cookie consent banners). Slightly heavier on page load.</span>
+          </span>
+          <span class="switch"><input type="checkbox" id="proceduralToggle" aria-label="Toggle procedural cosmetic filtering" /><span class="track"><span class="thumb"></span></span></span>
+        </label>
+        <label class="toggle-row">
+          <span class="toggle-meta">
+            <span class="toggle-name">Anti-adblock scriptlets</span>
+            <span class="toggle-desc">Run tiny page scripts that neutralise adblock detectors and consent walls.</span>
+          </span>
+          <span class="switch"><input type="checkbox" id="scriptletToggle" aria-label="Toggle anti-adblock scriptlets" /><span class="track"><span class="thumb"></span></span></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="listsTitle">
+      <div class="card-head">
+        <h2 id="listsTitle">Filter lists</h2>
+        <span class="head-note" id="listsTotalNote"></span>
+      </div>
+      <p class="card-sub">Bundled offline so Aegis works from the very first page load. Lists refresh with each extension update.</p>
+      <div id="quotaWarning" class="warning" hidden></div>
+      <div id="listsContainer" class="list-cards"></div>
+    </section>
+
+    <section class="card" aria-labelledby="customTitle">
+      <h2 id="customTitle">My filters</h2>
+      <p class="card-sub">Your own rules in EasyList syntax — one per line. Supported: <code>||domain^</code>, <code>*</code>, <code>^</code>, <code>|</code> anchors, <code>$domain=</code>, <code>$script</code>/<code>$image</code>/... , <code>$third-party</code>, <code>$important</code>, <code>@@</code> exceptions, <code>$generichide</code>.<br />Currently network rules only; cosmetic rules are ignored.</p>
+      <textarea id="customFilters" class="filters-input" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" placeholder="||ads.example.com^&#10;@@||metrics.example.com^$document,important&#10;||trackers.example.com^$third-party"></textarea>
+      <div class="custom-footer">
+        <span class="custom-result" id="customResult" role="status"></span>
+        <button class="btn btn-primary" id="applyCustom" type="button">Apply filters</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="sitesTitle">
+      <h2 id="sitesTitle">Paused sites</h2>
+      <p class="card-sub">Protection is suspended on these sites (ads, trackers and cosmetic filtering all allowed).</p>
+      <ul id="pausedSites" class="paused-sites"></ul>
+      <p id="pausedEmpty" class="empty-note">None — Aegis is active everywhere.</p>
+    </section>
+
+    <section class="card" aria-labelledby="aboutTitle">
+      <h2 id="aboutTitle">About &amp; credits</h2>
+      <p class="card-sub">
+        Aegis is an independent, open-source project. It is <strong>not affiliated</strong> with Brave, AdGuard, uBlock Origin or Ghostery.
+        Network blocking uses Chrome's declarativeNetRequest API. Filter lists © their respective authors:
+      </p>
+      <ul class="credits">
+        <li><a href="https://github.com/easylist/easylist" target="_blank" rel="noreferrer">EasyList &amp; EasyPrivacy</a> — the EasyList authors</li>
+        <li><a href="https://bv-an.content.adblockplus.org/" target="_blank" rel="noreferrer">Fanboy's Annoyance List</a> — Fanboy (a.k.a. ryanbr) et al.</li>
+      </ul>
+      <p class="card-sub" id="bundleInfo">Lists bundled with this build: unknown</p>
+      <div class="about-links">
+        <a class="btn btn-ghost" href="https://github.com/Tabish955/Adblocker-extension" target="_blank" rel="noreferrer">Source code</a>
+        <a class="btn btn-ghost" href="https://github.com/Tabish955/Adblocker-extension/issues" target="_blank" rel="noreferrer">Report a problem</a>
+        <button class="btn btn-danger" id="resetAll" type="button">Reset all settings</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="options.js"></script>
+</body>
+</html>
