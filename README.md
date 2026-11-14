@@ -10,6 +10,18 @@ no accounts, no cloud, no browsing history.**
 
 ---
 
+## v1.0.1 — performance & overblocking fixes
+
+- **Two-phase cosmetic injection.** Site-specific selectors apply at
+  `document_start`; the ~45k generic selectors are now injected after
+  `window.load` during an idle period, so first paint is never blocked by
+  a giant stylesheet.
+- **Fanboy's Annoyance now ships disabled by default** (enable it in Options
+  or with the popup list toggle). It hides cookie walls and newsletter
+  nags aggressively and was the main source of "important things got
+  blocked" reports, and its ~30k generic selectors doubled page-load cost.
+- Per-list DNR enablement in the manifest matches the new default.
+
 ## Is this achievable?
 
 **Yes — with one honest caveat.** An extension can legitimately reproduce the

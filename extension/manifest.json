@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Aegis Ad Blocker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast, open-source blocker for ads, trackers and cookie annoyances. Powered by EasyList, EasyPrivacy and Fanboy's Annoyances. No accounts, no tracking, no cloud.",
   "minimum_chrome_version": "111",
   "icons": {
@@ -34,7 +34,7 @@
     "rule_resources": [
       { "id": "easylist", "enabled": true, "path": "rulesets/easylist.json" },
       { "id": "easyprivacy", "enabled": true, "path": "rulesets/easyprivacy.json" },
-      { "id": "fanboy_annoyance", "enabled": true, "path": "rulesets/fanboy_annoyance.json" }
+      { "id": "fanboy_annoyance", "enabled": false, "path": "rulesets/fanboy_annoyance.json" }
     ]
   },
   "content_scripts": [

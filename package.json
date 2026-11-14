@@ -1,6 +1,6 @@
 {
   "name": "aegis-ad-blocker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aegis Ad Blocker \u2014 a fast, privacy-respecting MV3 ad & tracker blocker (EasyList/EasyPrivacy/Fanboy).",
   "private": true,
   "type": "module",
