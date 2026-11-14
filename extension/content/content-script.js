@@ -28,16 +28,39 @@
     });
   }
 
-  function injectHideCss(selectors) {
-    if (!selectors.length) return;
+  function injectHideCss(selectors, phase) {
+    if (!selectors || !selectors.length) return;
     const style = document.createElement('style');
     style.setAttribute('data-aegis', 'cosmetic');
+    if (phase) style.setAttribute('data-aegis-phase', phase);
     const parts = [];
     for (let i = 0; i < selectors.length; i += CHUNK) {
       parts.push(selectors.slice(i, i + CHUNK).join(',') + '{display:none!important}');
     }
     style.textContent = parts.join('\n');
     (document.head || document.documentElement).appendChild(style);
+  }
+
+  // Two-phase injection: site-specific rules (precise, few) apply at
+  // document_start; the ~45k generic selectors would stall first paint,
+  // so they are injected after window.load in an idle period.
+  function injectGenericWhenIdle(selectors) {
+    if (!selectors || !selectors.length) return;
+    let done = false;
+    const inject = () => {
+      if (done) return;
+      done = true;
+      injectHideCss(selectors, 'generic');
+    };
+    const schedule = () => {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(inject, { timeout: 2000 });
+      else setTimeout(inject, 300);
+    };
+    if (document.readyState === 'complete') schedule();
+    else {
+      window.addEventListener('load', schedule, { once: true });
+      setTimeout(schedule, 4000); // never-load fallback (long-polling/SPA shells)
+    }
   }
 
   /* ------------------------------------------------ procedural :has-text */
@@ -113,7 +136,13 @@
     const resolved = await sendMessage({ type: 'getCosmetics', hostname: host });
     if (!resolved || !resolved.enabled) return;
 
-    injectHideCss(resolved.selectors || []);
+    if (resolved.specificSelectors || resolved.genericSelectors) {
+      injectHideCss(resolved.specificSelectors || [], 'specific');
+      injectGenericWhenIdle(resolved.genericSelectors || []);
+    } else {
+      // Older service worker without the split — fall back to one-shot.
+      injectHideCss(resolved.selectors || []);
+    }
     if (resolved.procedural && resolved.procedural.length) applyProcedural(resolved.procedural);
   })().catch(() => { /* never break the page */ });
 })();

@@ -102,7 +102,7 @@ await test('onInstalled completes and seeds defaults', async () => {
   await listeners.installed({});
   const state = await send('getState');
   assert.equal(state.settings.enabled, true);
-  assert.deepEqual(state.settings.lists, { easylist: true, easyprivacy: true, fanboy_annoyance: true });
+  assert.deepEqual(state.settings.lists, { easylist: true, easyprivacy: true, fanboy_annoyance: false });
   assert.ok(Array.isArray(state.enabledRulesets));
   assert.ok(state.builtinLists.length === 3);
   assert.ok(state.buildMeta && state.buildMeta.lists.easylist.dnrRules > 1000, 'build meta exposed');

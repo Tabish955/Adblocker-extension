@@ -9,7 +9,7 @@
  *  - Compile & apply user's custom filters (dynamic DNR rules, safe actions only)
  */
 import {
-  resolveCosmeticSelectors,
+  resolveCosmeticSelectorsSplit,
   resolveProcedural,
   resolveScriptlets,
   compileFilters,
@@ -28,7 +28,7 @@ const BUILTIN_LISTS = [
 
 const DEFAULT_SETTINGS = {
   enabled: true,
-  lists: { easylist: true, easyprivacy: true, fanboy_annoyance: true },
+  lists: { easylist: true, easyprivacy: true, fanboy_annoyance: false },
   cosmeticFiltering: true,
   proceduralCosmetic: true,
   scriptletInjection: true,
@@ -151,7 +151,9 @@ async function resolveForHost(hostname) {
   const settings = await loadSettings();
   const result = {
     enabled: settings.enabled && !isSiteDisabled(settings, hostname),
-    selectors: [],
+    selectors: [],          // union (backwards compat): specific ++ generic
+    specificSelectors: [],  // site-specific — safe to inject at document_start
+    genericSelectors: [],   // ~45k generic rules — injected lazily after load
     procedural: [],
     scriptletsEnabled: false,
     enabledLists: {},
@@ -163,19 +165,27 @@ async function resolveForHost(hostname) {
   if (!settings.enabled || isSiteDisabled(settings, hostname)) return result;
 
   const aggregate = new Set();
+  const genericAgg = new Set();
+  const specificAgg = new Set();
   const procedural = [];
   for (const list of BUILTIN_LISTS) {
     if (!settings.lists[list.id]) continue;
     const data = await loadCosmeticData(list.id);
     if (!data) continue;
     if (settings.cosmeticFiltering) {
-      for (const sel of resolveCosmeticSelectors(data, hostname)) aggregate.add(sel);
+      const { generic, specific } = resolveCosmeticSelectorsSplit(data, hostname);
+      for (const sel of generic) genericAgg.add(sel);
+      for (const sel of specific) specificAgg.add(sel);
+      for (const sel of generic) aggregate.add(sel);
+      for (const sel of specific) aggregate.add(sel);
     }
     if (settings.proceduralCosmetic && data.procedural) {
       procedural.push(...resolveProcedural(data, hostname));
     }
   }
   result.selectors = [...aggregate];
+  result.specificSelectors = [...specificAgg];
+  result.genericSelectors = [...genericAgg];
   result.procedural = procedural;
   return result;
 }

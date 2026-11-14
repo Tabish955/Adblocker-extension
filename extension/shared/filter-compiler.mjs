@@ -683,7 +683,7 @@ export function buildCosmeticIndex(compiled) {
   };
 }
 
-export function resolveCosmeticSelectors(index, hostname) {
+function hostDomains(hostname) {
   hostname = (hostname || '').toLowerCase();
   const domains = [];
   const parts = hostname.split('.');
@@ -693,21 +693,32 @@ export function resolveCosmeticSelectors(index, hostname) {
     else if (parts.length === 1) domains.push(d);
     if (d.split('.').length === 2) break;
   }
+  return domains;
+}
+
+export function resolveCosmeticSelectorsSplit(index, hostname) {
+  const domains = hostDomains(hostname);
   const excluded = new Set(index.genericExcluded);
-  const selected = new Set(index.generic);
+  const generic = new Set(index.generic);
+  const specific = new Set();
   const disabledDomains = new Set(index.genericHideDisabledDomains || []);
 
   let disableGeneric = false;
   for (const d of domains) {
     if (disabledDomains.has(d)) disableGeneric = true;
-    for (const s of index.perDomain[d] || []) selected.add(s);
+    for (const s of index.perDomain[d] || []) specific.add(s);
     for (const s of index.perDomainExcluded[d] || []) excluded.add(s);
   }
-  if (disableGeneric) {
-    for (const s of index.generic) selected.delete(s);
-  }
-  for (const s of excluded) selected.delete(s);
-  return [...selected];
+  if (disableGeneric) generic.clear();
+  for (const s of excluded) { generic.delete(s); specific.delete(s); }
+  // A selector excluded anywhere must not survive in either bucket.
+  for (const s of excluded) specific.delete(s);
+  return { generic: [...generic], specific: [...specific] };
+}
+
+export function resolveCosmeticSelectors(index, hostname) {
+  const { generic, specific } = resolveCosmeticSelectorsSplit(index, hostname);
+  return [...specific, ...generic];
 }
 
 export function resolveProcedural(index, hostname) {
